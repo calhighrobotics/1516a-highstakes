@@ -1,14 +1,17 @@
 #include "main.h"
+#include "globals.h"
+#include "systems/intake.h"
+#include "lemlib/api.hpp"
 
-//Initialize the controller variable with the primary controller
-pros::Controller controller(pros::E_CONTROLLER_MASTER);
+using namespace Robot::Globals;
+using namespace Robot;
 
-//Initialize the motor group for the left motors with ports 1, 2, and 3, denoting the blue gear cartrige
-pros::MotorGroup left({1,2, 3}, pros::v5::MotorGears::blue);
+//struct for systems
 
-//Initialize the motor group for the right motors with ports 4, 5, and 6, denoting the blue cartidge
-//The negative sign for the ports indicate the motors will run in reverse, as one side always must
-pros::MotorGroup right({-4, -5, -6}, pros::v5::MotorGears::blue);
+struct Systems {
+	Intake intake;
+} systems;
+
 
 /**
  * A callback function for LLEMU's center button.
@@ -38,6 +41,12 @@ void initialize() {
 	pros::lcd::set_text(1, "Team 1516A");
 	//Add button to screen
 	pros::lcd::register_btn1_cb(on_center_button);
+
+	//Set blue signature as 1 on bot
+	vision.set_signature(1, &BLUE_SIG);
+
+	//Set red signature as 2 on bot
+	vision.set_signature(2, &RED_SIG);
 
 
 
@@ -72,7 +81,17 @@ void competition_initialize() {}
  * will be stopped. Re-enabling the robot will restart the task, not re-start it
  * from where it left off.
  */
-void autonomous() {}
+//load the test.txt path
+ASSET(test_txt);
+
+void autonomous() {
+    // set chassis pose to 0
+    chassis.setPose(0, 0, 0);
+
+	//Tell the chassis to follow the path provided
+    chassis.follow(test_txt, 15, 2000);
+}
+
 
 /**
  * Runs the operator control code. This function will be started in its own task
@@ -89,13 +108,22 @@ void autonomous() {}
  */
 void opcontrol() {
 
-
 	while (true) {
 
+		//Drivetrain Block
 		int dir = controller.get_analog(ANALOG_LEFT_Y);    // Gets amount forward/backward from left joystick
 		int turn = controller.get_analog(ANALOG_LEFT_X);   // Gets the turn left/right from left joystick
 		left.move(dir - turn);                      		// Sets left motor voltage
 		right.move(dir + turn);                     		// Sets right motor voltage
+
+
+		//Pneumatics Block
+		if (controller.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_A)) {
+			clamp.toggle();
+		}
+
+		
+
 		pros::delay(20);                               		// Wait 20 ms each iteration to avoid excessive compute
 	}
 }
