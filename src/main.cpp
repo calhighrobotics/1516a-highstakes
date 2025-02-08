@@ -1,6 +1,8 @@
 #include "main.h"
 #include "globals.h"
+#include "screen/selector.h"
 #include "systems/intake.h"
+#include "systems/ladybrown.h"
 #include "lemlib/api.hpp"
 
 using namespace Robot::Globals;
@@ -10,6 +12,8 @@ using namespace Robot;
 
 struct Systems {
 	Intake intake;
+	LadyBrown lb;
+	selector_screen sel;
 } systems;
 
 
@@ -29,6 +33,15 @@ void on_center_button() {
 	}
 }
 
+void intakeRun(void* args) {
+	while (true) {
+		systems.intake.run();
+		pros::delay(10);
+	}
+
+	
+}
+
 /**
  * Runs initialization code. This occurs as soon as the program is started.
  *
@@ -43,10 +56,17 @@ void initialize() {
 	pros::lcd::register_btn1_cb(on_center_button);
 
 	//Set blue signature as 1 on bot
-	vision.set_signature(1, &BLUE_SIG);
+	//vision.set_signature(1, &BLUE_SIG);
 
 	//Set red signature as 2 on bot
-	vision.set_signature(2, &RED_SIG);
+	color.set_led_pwm(100);
+	//vision.set_signature(2, &RED_SIG);
+
+	chassis.calibrate();
+	chassis.setPose({0, 0, 0});
+
+	systems.sel.selector();
+
 
 
 
@@ -89,7 +109,9 @@ void autonomous() {
     chassis.setPose(0, 0, 0);
 
 	//Tell the chassis to follow the path provided
-    chassis.follow(test_txt, 15, 2000);
+    chassis.moveToPoint(0, 10, 5000);
+
+	
 }
 
 
@@ -108,22 +130,37 @@ void autonomous() {
  */
 void opcontrol() {
 
+	pros::Task intakeTask(intakeRun);
+
 	while (true) {
 
+
 		//Drivetrain Block
-		int dir = controller.get_analog(ANALOG_LEFT_Y);    // Gets amount forward/backward from left joystick
-		int turn = controller.get_analog(ANALOG_LEFT_X);   // Gets the turn left/right from left joystick
-		left.move(dir - turn);                      		// Sets left motor voltage
-		right.move(dir + turn);                     		// Sets right motor voltage
+		chassis.arcade(controller.get_analog(ANALOG_LEFT_Y), controller.get_analog(ANALOG_RIGHT_X));
 
 
 		//Pneumatics Block
-		if (controller.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_A)) {
-			clamp.toggle();
-		}
+		if (controller.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_R1)) {
+			clamp.set_value(1);
+		} else if (controller.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_R2)) {
+			clamp.set_value(0);
+		} 
 
-		
 
-		pros::delay(20);                               		// Wait 20 ms each iteration to avoid excessive compute
+		if (controller.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_UP)) {
+			flick.set_value(1);
+		} else if (controller.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_LEFT)) {
+			flick.set_value(0);
+		} 
+
+		if (controller.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_RIGHT)) {
+			intake_lift.set_value(1);
+		} else if (controller.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_DOWN)) {
+			intake_lift.set_value(0);
+		} 
+
+		systems.lb.run();
+
+		pros::delay(10);                               		// Wait 20 ms each iteration to avoid excessive compute
 	}
 }

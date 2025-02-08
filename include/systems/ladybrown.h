@@ -10,6 +10,7 @@ namespace Robot {
      */
     class LadyBrown{
         public:
+            LadyBrown();
 
             /**
              * @breif Running the intake
@@ -24,6 +25,7 @@ namespace Robot {
             int idle_angle;
             int score_angle;
             int collect_angle;
+            int collect2_angle;
 
     };
 }

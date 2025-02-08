@@ -10,18 +10,25 @@ namespace Robot {
 
         extern pros::MotorGroup right;
 
-        extern pros::ADIPneumatics clamp;
+        extern pros::adi::Pneumatics clamp;
+         extern pros::adi::Pneumatics flick;
+          extern pros::adi::Pneumatics intake_lift;
 
         extern pros::Distance ring_detect;
 
-        extern pros::Vision vision ;
+        extern pros::Optical color;
         extern pros::vision_signature BLUE_SIG;
 
         extern pros::vision_signature RED_SIG;
 
+        extern pros::Rotation rotation_horiz;
+
+        //Vertical sensor
+        extern pros::Rotation rotation_vert;
+
         extern pros::Motor intake_motor;
 
-        extern pros::Motor lb_motor;
+        extern pros::MotorGroup lb_motor;
 
         extern lemlib::Drivetrain drivetrain;
 

@@ -1,36 +1,57 @@
 #include "api.h"
 #include "lemlib/api.hpp"
+#include "pros/motors.h"
+#include "pros/optical.hpp"
 
 namespace Robot {
     namespace Globals {
         //Initialize the controller variable with the primary controller
         pros::Controller controller(pros::E_CONTROLLER_MASTER);
+        
+
+        signed char LEFT_BACK = -16;
+        signed char LEFT_MID = -1;
+        signed char LEFT_FRONT = -11;
+
+
+        signed char RIGHT_BACK = 17;
+        signed char RIGHT_MID = 19;
+        signed char RIGHT_FRONT = 15;
+
 
         //Initialize the motor group for the left motors with ports 1, 2, and 3, denoting the blue gear cartrige
-        pros::MotorGroup left({1,2, 3}, pros::v5::MotorGears::blue);
+        pros::MotorGroup left({LEFT_BACK,LEFT_MID, LEFT_FRONT}, pros::v5::MotorGears::blue);
 
         //Initialize the motor group for the right motors with ports 4, 5, and 6, denoting the blue cartidge
         //The negative sign for the ports indicate the motors will run in reverse, as one side always must
-        pros::MotorGroup right({-4, -5, -6}, pros::v5::MotorGears::blue);
+        pros::MotorGroup right({RIGHT_BACK, RIGHT_MID, RIGHT_FRONT}, pros::v5::MotorGears::blue);
 
         //Initialize the solenoid
         //The specific port we are using is 'A'
         //The false indicated that the piston is starting in the closed state
-        pros::ADIPneumatics clamp('A', false);
+        pros::adi::Pneumatics clamp('F', false);
+
+        pros::adi::Pneumatics flick('G', false);
+
+        pros::adi::Pneumatics intake_lift('H', false);
+
+        
 
         //This allows us to change the port easily
-        uint8_t vision_port = 9;
+        uint8_t vision_port = 20;
 
         //Distance port
         uint8_t distance_port = 10;
 
         //Intake port
-        uint8_t intake_port = 11;
+        uint8_t intake_port = 3;
 
         //lb port
-        uint8_t lb_port = 15;
+        signed char lb_port_left = 21;
+        signed char lb_port_right = -14;
+        
 
-        pros::Motor lb_motor(lb_port);
+        pros::MotorGroup lb_motor({lb_port_left, lb_port_right});
 
         //Define intake motor
         pros::Motor intake_motor(intake_port);
@@ -39,8 +60,9 @@ namespace Robot {
         pros::Distance ring_detect(distance_port);
 
         //Intialize the vision sensor
-        pros::Vision vision ( vision_port );
+        //pros::Vision vision ( vision_port );
 
+        pros::Optical color(vision_port);
         int BLUE_SIG_NUM = 1;
         int RED_SIG_NUM = 2;
 
@@ -65,8 +87,8 @@ namespace Robot {
 
 
         //Rotation sensor ports
-        uint8_t rot_sensor_horiz = 12;
-        uint8_t rot_sensor_vert = 13;
+        uint8_t rot_sensor_horiz = 2;
+        uint8_t rot_sensor_vert = 12;
 
         //Horizontal sensor
         pros::Rotation rotation_horiz(rot_sensor_horiz);
@@ -75,7 +97,7 @@ namespace Robot {
         pros::Rotation rotation_vert(rot_sensor_vert);
 
         //Inertial port
-        uint8_t inertial_port = 14;
+        uint8_t inertial_port = 18;
 
         //Declare IMU
         pros::Imu imu(inertial_port);
@@ -84,14 +106,14 @@ namespace Robot {
         lemlib::TrackingWheel horizontal_tracking_wheel(
             &rotation_horiz, //encoder
             lemlib::Omniwheel::NEW_2, //wheel size
-            0 //offset
+            -2.75 //offset
         );
 
         //Define lemblib vertical tracking wheel
         lemlib::TrackingWheel vertical_tracking_wheel(
             &rotation_vert, //encoder
             lemlib::Omniwheel::NEW_2, //wheel size
-            5 //offset
+            0.375 //offset
         );
 
         // odometry settings
@@ -103,9 +125,9 @@ namespace Robot {
         );
 
         // lateral PID controller
-        lemlib::ControllerSettings lateral_controller(10, // proportional gain (kP)
+        lemlib::ControllerSettings lateral_controller(12, // proportional gain (kP)
                                                     0, // integral gain (kI)
-                                                    3, // derivative gain (kD)
+                                                    60, // derivative gain (kD)
                                                     3, // anti windup
                                                     1, // small error range, in inches
                                                     100, // small error range timeout, in milliseconds
@@ -115,9 +137,9 @@ namespace Robot {
         );
 
         // angular PID controller
-        lemlib::ControllerSettings angular_controller(2, // proportional gain (kP)
+        lemlib::ControllerSettings angular_controller(4, // proportional gain (kP)
                                                     0, // integral gain (kI)
-                                                    10, // derivative gain (kD)
+                                                    35, // derivative gain (kD)
                                                     3, // anti windup
                                                     1, // small error range, in degrees
                                                     100, // small error range timeout, in milliseconds
@@ -126,11 +148,17 @@ namespace Robot {
                                                     0 // maximum acceleration (slew)
         );
 
+        lemlib::ExpoDriveCurve driveCurve(5, 12, 1.132);
+
+        lemlib::ExpoDriveCurve angle(5, 0, 1.5);
+
         // create the chassis
         lemlib::Chassis chassis(drivetrain, // drivetrain settings
                                 lateral_controller, // lateral PID settings
                                 angular_controller, // angular PID settings
-                                sensors // odometry sensors
+                                sensors,
+                                &driveCurve
+                                //&angle
         );
 
     }
