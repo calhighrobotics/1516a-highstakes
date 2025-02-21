@@ -9,14 +9,14 @@ namespace Robot {
         pros::Controller controller(pros::E_CONTROLLER_MASTER);
         
 
-        signed char LEFT_BACK = -16;
-        signed char LEFT_MID = -1;
-        signed char LEFT_FRONT = -11;
+        signed char LEFT_BACK = -3;
+        signed char LEFT_MID = -4;
+        signed char LEFT_FRONT = -                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      1;
 
 
-        signed char RIGHT_BACK = 17;
+        signed char RIGHT_BACK = 18;
         signed char RIGHT_MID = 19;
-        signed char RIGHT_FRONT = 15;
+        signed char RIGHT_FRONT = 20;
 
 
         //Initialize the motor group for the left motors with ports 1, 2, and 3, denoting the blue gear cartrige
@@ -29,9 +29,9 @@ namespace Robot {
         //Initialize the solenoid
         //The specific port we are using is 'A'
         //The false indicated that the piston is starting in the closed state
-        pros::adi::Pneumatics clamp('F', false);
+        pros::adi::Pneumatics clamp('G', false);
 
-        pros::adi::Pneumatics flick('G', false);
+        pros::adi::Pneumatics flick('F', false);
 
         pros::adi::Pneumatics intake_lift('H', false);
 
@@ -44,7 +44,7 @@ namespace Robot {
         uint8_t distance_port = 10;
 
         //Intake port
-        uint8_t intake_port = 3;
+        uint8_t intake_port = 10;
 
         //lb port
         signed char lb_port_left = 21;
@@ -117,11 +117,11 @@ namespace Robot {
         );
 
         // odometry settings
-        lemlib::OdomSensors sensors(&vertical_tracking_wheel, // vertical tracking wheel
+        lemlib::OdomSensors sensors(nullptr,//&vertical_tracking_wheel, // vertical tracking wheel
                                     nullptr, // vertical tracking wheel 2, DNE
-                                    &horizontal_tracking_wheel, // horizontal tracking wheel
+                                    nullptr, //&horizontal_tracking_wheel, // horizontal tracking wheel
                                     nullptr, // horizontal tracking wheel 2, DNE
-                                    &imu // inertial sensor
+                                    nullptr //&imu // inertial sensor
         );
 
         // lateral PID controller

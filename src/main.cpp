@@ -106,10 +106,18 @@ ASSET(test_txt);
 
 void autonomous() {
     // set chassis pose to 0
-    chassis.setPose(0, 0, 0);
+    chassis.setPose(0, 0, 0, 180);
 
 	//Tell the chassis to follow the path provided
-    chassis.moveToPoint(0, 10, 5000);
+    chassis.moveToPoint(0, -9, 5000, {.forwards=false}, false);
+	clamp.set_value(1);
+	//chassis.moveToPoint(0,-3,5000,{.forwards=false},false);
+	// chassis.moveToPose(0,-10, 5000, , false)
+	//left.move_relative(-5,200);
+	//right.move_relative(-5,200);
+	
+	
+	
 
 	
 }
